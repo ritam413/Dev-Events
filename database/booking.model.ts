@@ -1,5 +1,4 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
-import Event from './event.model';
 
 /**
  * Booking Document Interface - Defines the structure of a Booking document
@@ -42,19 +41,15 @@ const BookingSchema: Schema<IBooking> = new Schema(
 );
 
 /**
- * Pre-save hook: Validates event existence and email format
+ * Pre-save hook: Validates email format
+ * Note: Event existence validation is moved to the service layer using transactions
+ * to prevent TOCTOU (Time-of-Check-Time-of-Use) race conditions.
  * Mongoose 9.x: throws errors instead of calling next(err)
  */
-BookingSchema.pre<IBooking>('save', async function () {
+BookingSchema.pre<IBooking>('save', function () {
   // Validate email format via schema validation, additional check for empty
   if (!this.email || this.email.trim().length === 0) {
     throw new Error('Email cannot be empty');
-  }
-
-  // Verify that the referenced event exists - prevents orphaned bookings
-  const eventExists = await Event.exists({ _id: this.eventId });
-  if (!eventExists) {
-    throw new Error(`Event with ID ${this.eventId} does not exist`);
   }
 });
 
