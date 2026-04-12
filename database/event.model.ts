@@ -125,41 +125,6 @@ EventSchema.pre<IEvent>('save', function () {
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-');
   }
-  
-  if (this.isModified('time') && this.time) {
-    const timeMatch = this.time.match(/(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)?/);
-    if (timeMatch) {
-      let hours = parseInt(timeMatch[1], 10);
-      const minutes = parseInt(timeMatch[2]);
-      const meridiem = timeMatch[3]?.toUpperCase();
-
-      // Validate hour range
-      if (meridiem) {
-        if (hours > 12 || hours < 1) {
-          throw new Error('Invalid hour');
-        }
-      } else {
-        if (hours > 23 || hours < 0) {
-          throw new Error('Invalid hour');
-        }
-      }
-
-      // Validate minute range
-      if (minutes > 59 || minutes < 0) {
-        throw new Error('Invalid minute');
-      }
-
-      // Perform AM/PM adjustments if meridiem is present
-      if (meridiem === 'PM' && hours !== 12) {
-        hours += 12;
-      } else if (meridiem === 'AM' && hours === 12) {
-        hours = 0;
-      }
-
-      // Set this.time to a zero-padded HH:MM string
-      this.time = `${hours.toString().padStart(2, '0')}:${minutes}`;
-    }
-  }
 
   // Normalize date to ISO format if it contains valid date data
   if (this.isModified('date') && this.date) {
@@ -180,7 +145,8 @@ EventSchema.pre<IEvent>('save', function () {
       if (meridiem === 'PM' && hours !== 12) hours += 12;
       if (meridiem === 'AM' && hours === 12) hours = 0;
 
-      this.time = `${hours.toString().padStart(2, '0')}:${minutes}`;
+      this.time = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+
     }
   }
 
