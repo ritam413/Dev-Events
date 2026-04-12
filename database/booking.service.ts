@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import Booking, { IBooking } from './booking.model';
 import Event from './event.model';
-import { connectDB } from '@/app/lib/mongodb';
+import connectDB  from '../lib/mongodb';
 
 /**
  * Creates a booking with transactional guarantees

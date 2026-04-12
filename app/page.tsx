@@ -1,30 +1,21 @@
-import Image from "next/image";
 import Explorebtn from "./components/Explore_btn";
 import EventCard from "./components/EventCard";
 import {events} from "../lib/constatnts";
-const events8 = [
-  { image:'/images/event1.png',
-    title:'Event 1 ',
-    slug:'event-1',
-    location:'location-1',
-    date:'Date-1',
-    time:'Time-1'
-  },
-  {image:'/images/event2.png',title:'Event 2 ',
-     slug:'event-1',
-    location:'location-1',
-    date:'Date-1',
-    time:'Time-1'
-  },
-  {image:'/images/event3.png',title:'Event 3 ',
-     slug:'event-1',
-    location:'location-1',
-    date:'Date-1',
-    time:'Time-1'
-  },
-]
+import { IEvent } from "@/database/event.model";
 
-export default function Home() {
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000' 
+
+export default async function Home() {
+  
+  const response = await fetch(`${BASE_URL}/api/events`,{
+    method:'GET',
+    headers:{
+      'Content-Type':'application/json'
+    }
+  })
+
+  const {events : fetchedEvents} = await response.json()
+
   return (
     <>
     <section className="text-center">
@@ -38,7 +29,7 @@ export default function Home() {
       <div className="mt-10 space-y-7 text-start">
         <h3>Featured Events</h3>
         <ul className="events">
-          {events.map((event)=>(
+          {fetchedEvents.map((event:IEvent)=>(
             <li className='list-none' key={event.title}>
               <EventCard {...event}/>
             </li>

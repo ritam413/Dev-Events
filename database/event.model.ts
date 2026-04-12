@@ -117,11 +117,20 @@ EventSchema.index({ slug: 1 }, { unique: true });
 EventSchema.pre<IEvent>('save', function () {
   // Generate slug only if title is modified or slug doesn't exist
   // Normalize time to HH:MM format (24-hour)
+   if (!this.slug && this.title) {
+    this.slug = this.title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+  }
+  
   if (this.isModified('time') && this.time) {
     const timeMatch = this.time.match(/(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)?/);
     if (timeMatch) {
       let hours = parseInt(timeMatch[1], 10);
-      const minutes = timeMatch[2];
+      const minutes = parseInt(timeMatch[2]);
       const meridiem = timeMatch[3]?.toUpperCase();
 
       // Validate hour range
