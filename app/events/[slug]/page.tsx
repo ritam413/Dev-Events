@@ -1,6 +1,9 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import BookEvent from '@/app/components/BookEvent';
+import { IEvent } from '@/database/event.model';
+import { getSimilarEventsBySlug } from '@/lib/actions/event.actions';
+import EventCard from '@/app/components/EventCard';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
@@ -14,12 +17,23 @@ const EventDetailItem = ({ icon, alt, label }: { icon: string, alt: string, labe
 }
 
 
-const EventAgenda = async ({agendaItems}:{agendaItems:string[]}) => (
+const EventAgenda = async ({ agendaItems }: { agendaItems: string[] }) => (
   <div className='agenda'>
     <h2>Agenda</h2>
     <ul>
-      {agendaItems.map((item:string)=>(
-        <li  key={item}>
+      {agendaItems.map((item: string) => (
+        <li key={item}>
+          {item}
+        </li>
+      ))}
+    </ul>
+  </div>
+)
+const EventTags = async ({ eventTags }: { eventTags: string[] }) => (
+  <div className='tags mt-6'>
+    <ul className='flex flex-row  gap-2 '>
+      {eventTags.map((item: string) => (
+        <li key={item} className=' list-none border-none py-1 px-5 rounded-sm bg-gray-900/80 justify-center align-middle'>
           {item}
         </li>
       ))}
@@ -36,9 +50,14 @@ const EventDetailspage = async ({ params }: { params: Promise<{ slug: string }> 
   if (!event) return notFound()
 
 
-  const bookings = 0;
+  const bookings = 10;
 
-  console.log("event ✅" )
+  const similarEvents:IEvent[] = await getSimilarEventsBySlug(event.slug)
+
+  console.log("similarEvents : is : ", similarEvents.constructor.name)
+  // console.log("similarEvents : is Mongose object:  ", similarEvents.save)
+
+  console.log("event ✅")
   return (
     <section id='event'>
 
@@ -64,11 +83,12 @@ const EventDetailspage = async ({ params }: { params: Promise<{ slug: string }> 
             <EventDetailItem icon="/icons/clock.svg" alt="Clock Icon" label={event.time} />
           </section>
 
-          <EventAgenda agendaItems={JSON.parse(event.agenda)} />
+          <EventAgenda agendaItems={event.agenda} />
 
           <section className='flex-col-gap-2'>
             <h2> About The Organizers </h2>
             <p>{event.organizer}</p>
+          <EventTags eventTags={event.tags}/>
           </section>
 
 
@@ -79,22 +99,30 @@ const EventDetailspage = async ({ params }: { params: Promise<{ slug: string }> 
             <h2>
               Book Your Spot Now!
             </h2>
-            {bookings>0?(
+            {bookings > 0 ? (
               <p>
-                Join {bookings} others who have already booked their spot for this event. Don't miss out on an unforgettable experience!
+                Join {bookings} others who have already booked their spot.
               </p>
-            ):(
+            ) : (
               <p>
-                Be the first to book your spot for this exciting event! 
+                Be the first to book your spot for this exciting event!
               </p>
             )}
 
-            <BookEvent/>
+            <BookEvent />
           </div>
-      </aside>
+        </aside>
+      </div>
+        
+      <div className='flex w-full flex-col gap-5 pt-20'>
+        <h2>Similar Events</h2>
+        <div className='events'>
+          {similarEvents.length>0 && similarEvents.map((similarEvent: IEvent) => (
+            <EventCard key={similarEvent.title} {...similarEvent}/>
+          ))}
+        </div>
       </div>
 
-      
     </section >
   )
 }
