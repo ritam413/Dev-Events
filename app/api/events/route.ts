@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import connectToDatabase from "@/lib/mongodb";
 import { Event } from "@/database";
+import {revalidateTag} from "next/cache";
 
 // cloudinary.config({
 //     cloud_name: process.env.CLOUDINARY_URL,
@@ -30,8 +31,19 @@ export async function POST(req:NextRequest) {
             return NextResponse.json({message:'Image is required'},{status:400})
         }
 
-        let tags = JSON.parse(formData.get('tags') as string)
-        let agenda = JSON.parse(formData.get('agenda') as string)
+        let tags:string[];
+        let agenda :string[];
+
+        try{
+            tags = JSON.parse(formData.get('tags') as string)
+            agenda =  JSON.parse(formData.get('agenda') as string)
+        }catch{
+            return NextResponse.json({message:'Invalid Tags/Agenda format data'},{status:400})
+        }
+
+        if(!Array.isArray(tags)|| !Array.isArray(agenda)){
+            return NextResponse.json({message:'Tags and agenda are not in array format'})
+        }
 
         const arrayBuffer = await file.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
@@ -51,6 +63,9 @@ export async function POST(req:NextRequest) {
             tags:tags,
             agenda:agenda,
         });
+
+        revalidateTag('events')
+
 
         return NextResponse.json({message:'Event Created Successfully',event:createdEvent},{status:201})
     } catch (e) {

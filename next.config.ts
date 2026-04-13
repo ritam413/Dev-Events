@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  reactStrictMode: false,
+  cacheComponents:true,
+  // reactStrictMode: false,
   images:{
     remotePatterns:[
       {
