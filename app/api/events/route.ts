@@ -4,11 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 import connectToDatabase from "@/lib/mongodb";
 import { Event } from "@/database";
 
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-})
+// cloudinary.config({
+//     cloud_name: process.env.CLOUDINARY_URL,
+//     // api_key: process.env.CLOUDINARY_API_KEY,
+//     // api_secret: process.env.CLOUDINARY_API_SECRET
+// })
 
 export async function POST(req:NextRequest) {
     try {
@@ -30,6 +30,9 @@ export async function POST(req:NextRequest) {
             return NextResponse.json({message:'Image is required'},{status:400})
         }
 
+        let tags = JSON.parse(formData.get('tags') as string)
+        let agenda = JSON.parse(formData.get('agenda') as string)
+
         const arrayBuffer = await file.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
 
@@ -43,7 +46,11 @@ export async function POST(req:NextRequest) {
         // see this part
         event.image = (uploadResult as {secure_url : string}).secure_url
 
-        const createdEvent = await Event.create(event);
+        const createdEvent = await Event.create({
+            ...event,
+            tags:tags,
+            agenda:agenda,
+        });
 
         return NextResponse.json({message:'Event Created Successfully',event:createdEvent},{status:201})
     } catch (e) {
